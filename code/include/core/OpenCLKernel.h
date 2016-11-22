@@ -26,14 +26,16 @@ extern "C" {
 class OpenCLKernel
 {
     public:
-        OpenCLKernel(KernelType Type, char* Source, int SourceLen, OpenCLEnv* Env);
+        OpenCLKernel(KernelType Type, char* Name, char* Source, int SourceLen, OpenCLEnv* Env);
         ~OpenCLKernel();
+        cl_kernel GetKernel(){return kernel;};
     private:
         char *LoadProgramSource(const char *cFilename, size_t *finalLength);
         cl_program CreateProgramWithSource(char** Source);
         cl_program CreateProgramWithBinary(char** Source);
         cl_int BuildProgram(cl_program curClProgram);
-
+        
+        char KenrelName[100];
         OpenCLEnv* mEnv;
         OpenCLHandle* mOpenCLHandle;
         cl_context   mContext;
@@ -46,7 +48,6 @@ class OpenCLKernel
         size_t      compiler_WGsize[3];
         char isSchedulerEnabled;
         char programBuildOptions[100];
-
 };
 
 #ifdef __cplusplus

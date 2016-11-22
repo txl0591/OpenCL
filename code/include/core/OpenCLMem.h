@@ -25,6 +25,7 @@ extern "C" {
 
 class OpenCLMem
 {
+public:
     OpenCLMem(int Size,int Flag, void* host, OpenCLEnv* Env);
     ~OpenCLMem();
     cl_mem GetOpenCLMem(){return mCLMem;};

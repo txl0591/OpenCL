@@ -15,15 +15,52 @@
 #include "config.h"
 #include "OpenCLKernel.h"
 
-OpenCLKernel::OpenCLKernel(KernelType Type, char* Source, int SourceLen, OpenCLEnv* Env)
+OpenCLKernel::OpenCLKernel(KernelType Type, char* Name, char* Source, int SourceLen, OpenCLEnv* Env)
 :isSchedulerEnabled(0)
 ,kernel(NULL)
 {
+	cl_int err = CL_DEVICE_NOT_FOUND;
+	char* KernelBuf = NULL;
+	size_t KernelLen = 0;
+	cl_program curClProgram = NULL;
+	
+	memset(KenrelName, 0, sizeof(KenrelName));
+	sprintf(KenrelName, "%s", Name);
 	mEnv = Env;
 	mOpenCLHandle = Env->GetHandle();
     mContext = Env->GetContext();
 	mDeviceID = Env->GetDeviceID(); 
 	memset(programBuildOptions, 0, sizeof(programBuildOptions));
+	switch(Type)
+	{
+	    case KERNEL_BIN:
+	 		KernelBuf = LoadProgramSource((const char *)Source, &KernelLen);
+			curClProgram = CreateProgramWithBinary(&KernelBuf);
+	        break;
+	    
+	    case KERNEL_FILE:
+	 		KernelBuf = LoadProgramSource((const char *)Source, &KernelLen);	 
+			curClProgram = CreateProgramWithSource(&KernelBuf);
+	        break;
+	    
+	    case KERNEL_SOURCE:
+			curClProgram = CreateProgramWithSource(&Source);
+	        break;
+	    
+	    default:
+	        break;
+	}
+
+	if(KernelBuf != NULL)
+	{
+		free(KernelBuf);
+		KernelBuf = NULL;
+	}
+
+	if(curClProgram != NULL)
+	{
+		err = BuildProgram(curClProgram);
+	}
 }
 
 OpenCLKernel::~OpenCLKernel()
@@ -118,7 +155,7 @@ cl_int OpenCLKernel::BuildProgram(cl_program curClProgram)
 
 	if(mOpenCLHandle->m_clCreateKernel)
     {
-        kernel = mOpenCLHandle->m_clCreateKernel(curClProgram, "OpenCLKernel", &err);
+        kernel = mOpenCLHandle->m_clCreateKernel(curClProgram, KenrelName, &err);
         if(CL_SUCCESS != err)
         {
             switch(err)
@@ -149,10 +186,6 @@ cl_int OpenCLKernel::BuildProgram(cl_program curClProgram)
                         break;
             }
             ms_error("clCreateKernel error [%d]",err);
-        }
-        else
-        {
-            ms_debug("Kernelname Success");
         }
     }
 

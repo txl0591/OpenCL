@@ -15,6 +15,7 @@
 #ifndef _OPENCLCORE_H_
 #define _OPENCLCORE_H_
 
+#include <CL/cl.h>
 #include <CL/opencl.h>
 
 #ifdef __cplusplus
